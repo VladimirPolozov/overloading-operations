@@ -1,19 +1,4 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using System;
 
 namespace matrix {
   public interface IPrototype<T> where T : class {
@@ -31,6 +16,7 @@ namespace matrix {
     public int Hash {
       get {
         hash = MatrixArray[0, 0];
+
         for (int rowIndex = 0; rowIndex < Extension; ++rowIndex) {
           for (int columnIndex = 0; columnIndex < Extension; ++columnIndex) {
             hash = hash * MatrixArray[rowIndex, columnIndex] + hash % MatrixArray[rowIndex, columnIndex];
@@ -39,6 +25,10 @@ namespace matrix {
 
         return hash;
       }
+    }
+
+    public SquareMatrix(int[,] elements) {
+      MatrixArray = elements;
     }
 
     public SquareMatrix(params int[] elements) {
@@ -55,8 +45,7 @@ namespace matrix {
 
           try {
             matrix[rowIndex, columnIndex] = elements[elementIndex];
-          }
-          catch (System.IndexOutOfRangeException exception) {
+          } catch (System.IndexOutOfRangeException exception) {
             Console.WriteLine(exception.Message);
           }
 
@@ -70,21 +59,25 @@ namespace matrix {
     public void AutoFill(int extension, int minElement = -10, int MaxElement = 10) {
       int[] elements = new int[extension * extension];
       var random = new Random();
+
       for (int elementIndex = 0; elementIndex < extension * extension; ++elementIndex) {
         elements[elementIndex] = random.Next(minElement, MaxElement);
       }
+
       MatrixArray = GetMatrixFromArray(elements);
     }
 
     public SquareMatrix Clone() {
       int[] elements = new int[this.Extension];
       int elementIndex = 0;
+
       for (int rowIndex = 0; rowIndex < this.Extension; ++rowIndex) {
         for (int columnIndex = 0; columnIndex < this.Extension; ++columnIndex) {
           elements[elementIndex] = this.MatrixArray[rowIndex, columnIndex];
           ++elementIndex;
         }
       }
+
       return new SquareMatrix(elements);
     }
 
@@ -105,13 +98,12 @@ namespace matrix {
         throw new DifferentSizesException("Операцию сложения можно выполнять только с матрицами одинаковой размерности");
       }
 
-      int[] result = new int[firstMatrix.Extension * firstMatrix.Extension];
-      int elementIndex = 0;
+      int extension = firstMatrix.Extension;
+      int[,] result = new int[extension, extension];
 
-      for (int rowIndex = 0; rowIndex < firstMatrix.Extension; ++rowIndex) {
-        for (int columnIndex = 0; columnIndex < firstMatrix.Extension; ++columnIndex) {
-          result[elementIndex] = firstMatrix.MatrixArray[rowIndex, columnIndex] + secondMatrix.MatrixArray[rowIndex, columnIndex];
-          ++elementIndex;
+      for (int rowIndex = 0; rowIndex < extension; ++rowIndex) {
+        for (int columnIndex = 0; columnIndex < extension; ++columnIndex) {
+          result[rowIndex, columnIndex] = firstMatrix.MatrixArray[rowIndex, columnIndex] + secondMatrix.MatrixArray[rowIndex, columnIndex];
         }
       }
 
@@ -123,13 +115,12 @@ namespace matrix {
         throw new DifferentSizesException("Операцию вычитания можно выполнять только с матрицами одинаковой размерности");
       }
 
-      int[] result = new int[firstMatrix.Extension * firstMatrix.Extension];
-      int elementIndex = 0;
+      int extension = firstMatrix.Extension;
+      int[,] result = new int[extension, extension];
 
-      for (int rowIndex = 0; rowIndex < firstMatrix.Extension; ++rowIndex) {
-        for (int columnIndex = 0; columnIndex < firstMatrix.Extension; ++columnIndex) {
-          result[elementIndex] = firstMatrix.MatrixArray[rowIndex, columnIndex] - secondMatrix.MatrixArray[rowIndex, columnIndex];
-          ++elementIndex;
+      for (int rowIndex = 0; rowIndex < extension; ++rowIndex) {
+        for (int columnIndex = 0; columnIndex < extension; ++columnIndex) {
+          result[rowIndex, columnIndex] = firstMatrix.MatrixArray[rowIndex, columnIndex] - secondMatrix.MatrixArray[rowIndex, columnIndex];
         }
       }
 
@@ -141,17 +132,16 @@ namespace matrix {
         throw new DifferentSizesException("Операцию умножения можно выполнять только с матрицами одинаковой размерности");
       }
 
-      int[] result = new int[firstMatrix.Extension * firstMatrix.Extension];
-      int elementIndex = 0;
+      int extension = firstMatrix.Extension;
+      int[,] result = new int[extension, extension];
 
       for (int rowIndexOfFirstMatrix = 0; rowIndexOfFirstMatrix < firstMatrix.Extension; ++rowIndexOfFirstMatrix) {
-        for (int columnIndex = 0; columnIndex < firstMatrix.Extension; ++columnIndex) {
-          result[elementIndex] = 0;
+        for (int columnIndex = 0; columnIndex < extension; ++columnIndex) {
+          result[rowIndexOfFirstMatrix, columnIndex] = 0;
 
-          for (int indexOfSecondElement = 0; indexOfSecondElement < firstMatrix.Extension; ++indexOfSecondElement) {
-            result[elementIndex] += firstMatrix.MatrixArray[rowIndexOfFirstMatrix, indexOfSecondElement] * secondMatrix.MatrixArray[indexOfSecondElement, columnIndex];
+          for (int indexOfSecondElement = 0; indexOfSecondElement < extension; ++indexOfSecondElement) {
+            result[rowIndexOfFirstMatrix, columnIndex] += firstMatrix.MatrixArray[rowIndexOfFirstMatrix, indexOfSecondElement] * secondMatrix.MatrixArray[indexOfSecondElement, columnIndex];
           }
-          ++elementIndex;
         }
       }
 
@@ -189,11 +179,7 @@ namespace matrix {
 
     public override bool Equals(object other) {
       var second = other as SquareMatrix;
-      if (this.SumOfElements() == second.SumOfElements()) {
-        return true;
-      } else {
-        return false;
-      }
+      return this.SumOfElements() == second.SumOfElements();
     }
 
     public static bool operator ==(SquareMatrix firstMatrix, SquareMatrix secondMatrix) {
@@ -205,17 +191,11 @@ namespace matrix {
     }
 
     public static bool operator false(SquareMatrix matrix) {
-      if (matrix.SumOfElements() == 0) {
-        return false;
-      }
-      return true;
+      return matrix.SumOfElements() == 0;
     }
 
     public static bool operator true(SquareMatrix matrix) {
-      if (matrix.SumOfElements() == 0) {
-        return false;
-      }
-      return true;
+      return matrix.SumOfElements() == 1;
     }
 
     public override int GetHashCode() {
@@ -223,15 +203,15 @@ namespace matrix {
     }
 
     public override string ToString() {
-      string matrixStr = "";
+      string matrixString = "";
 
       for (int rowIndex = 0; rowIndex < this.Extension; ++rowIndex) {
         for (int columnIndex = 0; columnIndex < this.Extension; ++columnIndex) {
-          matrixStr = matrixStr + " " + this.MatrixArray[rowIndex, columnIndex];
+          matrixString = matrixString + " " + this.MatrixArray[rowIndex, columnIndex];
         }
       }
 
-      return matrixStr;
+      return matrixString;
     }
 
     public static implicit operator SquareMatrix(int[] elements) {
@@ -293,7 +273,7 @@ namespace matrix {
     static void Main(string[] args) {
       bool isWorking = true;
       bool isCalcMode;
-      string userChoose;
+      string userChoise;
       string operationChoose;
 
       Console.Write("Введите размерность для первой матрицы (одно число - матрица квадратная): ");
@@ -309,9 +289,9 @@ namespace matrix {
 
       while (isWorking) {
         Console.Write("Выбор действий:\n1 - Продемонстрировать работу программы\n2 - Выполнить операции с матрицами\n0 - Выйти\nВведите число: ");
-        userChoose =Console.ReadLine();
+        userChoise = Console.ReadLine();
 
-        switch (userChoose) {
+        switch (userChoise) {
           case "0":
             isWorking = false;
             break;
@@ -342,22 +322,22 @@ namespace matrix {
                   SquareMatrix.Print(firstMatrix * secondMatrix);
                   break;
                 case ">":
-                  Console.WriteLine($"Матрица 1 > Матрицы 2: {firstMatrix > secondMatrix}");
+                  Console.WriteLine($"Матрица 1 > Матрица 2: {firstMatrix > secondMatrix}");
                   break;
                 case ">=":
-                  Console.WriteLine($"Матрица 1 >= Матрицы 2: {firstMatrix >= secondMatrix}");
+                  Console.WriteLine($"Матрица 1 >= Матрица 2: {firstMatrix >= secondMatrix}");
                   break;
                 case "<":
-                  Console.WriteLine($"Матрица 1 < Матрицы 2: {firstMatrix < secondMatrix}");
+                  Console.WriteLine($"Матрица 1 < Матрица 2: {firstMatrix < secondMatrix}");
                   break;
                 case "<=":
-                  Console.WriteLine($"Матрица 1 <= Матрицы 2: {firstMatrix < secondMatrix}");
+                  Console.WriteLine($"Матрица 1 <= Матрица 2: {firstMatrix < secondMatrix}");
                   break;
                 case "==":
-                  Console.WriteLine($"Матрица 1 == Матрицы 2: {firstMatrix == secondMatrix}");
+                  Console.WriteLine($"Матрица 1 == Матрица 2: {firstMatrix == secondMatrix}");
                   break;
                 case "!=":
-                  Console.WriteLine($"Матрица 1 != Матрицы 2: {firstMatrix != secondMatrix}");
+                  Console.WriteLine($"Матрица 1 != Матрица 2: {firstMatrix != secondMatrix}");
                   break;
                 default:
                   Console.WriteLine("Данная операция не реализована");

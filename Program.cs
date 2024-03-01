@@ -97,7 +97,7 @@ namespace matrix {
 
       for (int rowIndex = 0; rowIndex < extension; ++rowIndex) {
         for (int columnIndex = 0; columnIndex < extension; ++columnIndex) {
-          result.MatrixArray[rowIndex, columnIndex] = firstMatrix.MatrixArray[rowIndex, columnIndex] + secondMatrix.MatrixArray[rowIndex, columnIndex];
+          result.MatrixArray[rowIndex, columnIndex] += secondMatrix.MatrixArray[rowIndex, columnIndex];
         }
       }
 
@@ -114,7 +114,7 @@ namespace matrix {
 
       for (int rowIndex = 0; rowIndex < extension; ++rowIndex) {
         for (int columnIndex = 0; columnIndex < extension; ++columnIndex) {
-          result.MatrixArray[rowIndex, columnIndex] = firstMatrix.MatrixArray[rowIndex, columnIndex] - secondMatrix.MatrixArray[rowIndex, columnIndex];
+          result.MatrixArray[rowIndex, columnIndex] -= secondMatrix.MatrixArray[rowIndex, columnIndex];
         }
       }
 
